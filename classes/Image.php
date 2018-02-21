@@ -65,10 +65,6 @@ class Image
 
 		return $ext;
 	}
-	public function ImageDate($image){
-		$data =  file_get_contents($image);
-		return unserialize(serialize($data));
-	}
 	 /**
      * Resize the Image
      * @param   $params (array)
