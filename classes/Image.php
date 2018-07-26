@@ -1,984 +1,809 @@
 <?php
-	/**
-	 * This package can Resize image,change brightness,effects,blur,flip,crop,rotate.
-	 *
-	 * @author   Malik Umer Farooq <lablnet01@gmail.com>
-	 * @author-profile https://www.facebook.com/malikumerfarooq01/
-	 * @license MIT 
-	 * @link      https://github.com/Lablnet/PHP-files-manipulation-class
-	 */
+/**
+ * This package can Resize image,change brightness,effects,blur,flip,crop,rotate.
+ *
+ * @author   Malik Umer Farooq <lablnet01@gmail.com>
+ * @author-profile https://www.facebook.com/malikumerfarooq01/
+ *
+ * @license MIT
+ *
+ * @link      https://github.com/Lablnet/PHP-files-manipulation-class
+ */
 class Image
 {
-	 /**
-     * Change content-header-type
+    /**
+     * Change content-header-type.
+     *
      * @return void
-    */	
-	public function SetHeaders(){
+     */
+    public function SetHeaders()
+    {
+        header('Content-Type: image/png');
 
-		header('Content-Type: image/png');
+        header('Content-Type: image/jpeg');
 
-		header('Content-Type: image/jpeg');
+        header('Content-Type: image/jpg');
 
-		header('Content-Type: image/jpg');
+        header('Content-Type: image/gif');
+    }
 
-		header('Content-Type: image/gif');
-
-	}
-
-	 /**
-     * Save the Image
+    /**
+     * Save the Image.
+     *
      * @param   $params (array)
-     * 'image' => Source valid image file
-     * 'target' => target + new name of file
+     *                  'image' => Source valid image file
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageSave( $params ){
+     */
+    public function ImageSave($params)
+    {
+        if (is_array($params)) {
+            imagejpeg($params['image'], $params['target'], 100);
 
-		if(is_array($params)){
+            imagedestroy($params['image']);
 
-			imagejpeg($params['image'], $params['target'], 100);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-			imagedestroy($params['image']);
-
-			return true;
-
-		}else{
-
-			return false;
-
-		}
-
-	}
-	 /**
-     * Extension of image
+    /**
+     * Extension of image.
+     *
      * @param   $params (string)
-     * 'image' => Source valid image file
+     *                  'image' => Source valid image file
+     *
      * @return string
-    */
-	public function ImageExtension($image){
+     */
+    public function ImageExtension($image)
+    {
+        $filename = $image;
 
-		$filename = $image;
+        $extension = explode('.', $filename);
 
-		$extension = explode('.', $filename);
+        $ext = strtolower(end($extension));
 
-		$ext = strtolower(end($extension));
+        return $ext;
+    }
 
-		return $ext;
-	}
-	 /**
-     * Resize the Image
+    /**
+     * Resize the Image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'w' => New width of image
-	 * 'h' => New height of image
-	 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'w' => New width of image
+     *                  'h' => New height of image
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageResize( $params ){
+     */
+    public function ImageResize($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array( $params )){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            $width = $params['w'];
 
-			$ext = $this->ImageExtension($filename);
+            $height = $params['h'];
 
-			$width = $params['w'];
+            $img_size = getimagesize($params['source']);
 
-			$height = $params['h'];
+            $o_width = $img_size[0];
 
-			$img_size = getimagesize($params['source']);
+            $o_height = $img_size[1];
 
-			$o_width = $img_size[0];
+            if ($width > $o_width or $height > $o_height) {
+                $width = $width - 100;
 
-			$o_height = $img_size[1];
+                $height = $height - 100;
+            }
 
-			if( $width > $o_width or $height > $o_height){
+            $image_c = imagecreatetruecolor($width, $height);
 
-				$width = $width - 100;
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-				$height = $height - 100;
+            imagecopyresampled($image_c, $image, 0, 0, 0, 0, $width, $height, $o_width, $o_height);
 
-			}
+            $img = imagejpeg($image_c);
 
-			$image_c = imagecreatetruecolor($width, $height);			
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-			if( $ext === 'png' ){
+                [
+                    'image'  => $image_c,
+                    'target' => $params['target'],
+                ]
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            );
+            }
+            imagedestroy($image_c);
 
-			}elseif( $ext === 'jpeg' ){
+            return $img;
+        }
+    }
 
-				$image = imagecreatefromjpeg($filename);
-
-			}elseif( $ext === 'gif' ){
-
-				$image = imagecreatefromgif($filename);
-
-			}else{
-				return false;
-			}			
-
-			imagecopyresampled($image_c, $image, 0, 0, 0, 0, $width, $height, $o_width, $o_height);
-
-			
-			$img = imagejpeg($image_c);
-				
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image_c,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}	
-			imagedestroy($image_c);	
-
-			return $img;
-		}
-
-	}
-
-	 /**
-     * Resize the Image
+    /**
+     * Resize the Image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'brightness' => Brightnes to-be set valid -255 to 255 
-	 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'brightness' => Brightnes to-be set valid -255 to 255
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageBrightness( $params ){
+     */
+    public function ImageBrightness($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array($params)){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);			
+            imagefilter($image, IMG_FILTER_BRIGHTNESS, $params['brightness']);
 
-			if( $ext === 'png' ){
+            $img = imagejpeg($image);
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-			}elseif( $ext === 'jpeg' ){
+                [
+                    'image'  => $image,
+                    'target' => $params['target'],
+                ]
 
-				$image = imagecreatefromjpeg($filename);
+            );
+            }
 
-			}elseif( $ext === 'gif' ){
+            imagedestroy($image);
 
-				$image = imagecreatefromgif($filename);
+            return $img;
+        } else {
+            return false;
+        }
+    }
 
-			}else{
-				return false;
-			}			
-
-			imagefilter($image, IMG_FILTER_BRIGHTNESS,$params['brightness']);
-
-			$img = imagejpeg($image);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-
-			imagedestroy($image);	
-
-			return $img;
-		}else{
-
-			return false;
-
-		}
-
-	}
-
-	 /**
-     * Resize the Image
+    /**
+     * Resize the Image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'blur_opacity' => blur_opacity recommended 100 otherwise you provide whatever you want
-	 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'blur_opacity' => blur_opacity recommended 100 otherwise you provide whatever you want
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */ 
-	public function ImageBlur( $params ){
+     */
+    public function ImageBlur($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array($params)){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);				
+            $blur_opacity = $params['blur_opacity'];
 
-			if( $ext === 'png' ){
+            if ($params['blur_opacity'] === 0 or $params['blur_opacity'] === 1) {
+                $blur_opacity += 5;
+            }
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            for ($x = 1; $x <= $blur_opacity; $x++) {
+                imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
+            }
 
-			}elseif( $ext === 'jpeg' ){
+            $img = imagejpeg($image);
 
-				$image = imagecreatefromjpeg($filename);
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-			}elseif( $ext === 'gif' ){
+                [
+                    'image'  => $image,
+                    'target' => $params['target'],
+                ]
 
-				$image = imagecreatefromgif($filename);
+            );
+            }
 
-			}else{
+            imagedestroy($image);
 
-				return false;
+            return $img;
+        } else {
+            return false;
+        }
+    }
 
-			}			
-
-			$blur_opacity = $params['blur_opacity'];
-
-			if($params['blur_opacity'] === 0 or $params['blur_opacity'] ===1 ){
-
-				$blur_opacity += 5;
-
-			}
-
-        for ( $x = 1 ; $x <= $blur_opacity ;  $x++ ){
-
-           imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
-
-        } 
-			
-
-			$img = imagejpeg($image);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-		
-			imagedestroy($image);	
-
-			return $img;
-		}else{
-
-			return false;
-
-		}
-
-	}
-		
-	 /**
-     * Resize the Image
+    /**
+     * Resize the Image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'effect' => Different effect supported 
-	 * => blackwhite
-	 * => negative
-	 * => emboss
-	 * => highlight
-	 * => edegdetect
-	 * for bubbles.bubbles1,cloud effect opacity is required 
-	 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'effect' => Different effect supported
+     *                  => blackwhite
+     *                  => negative
+     *                  => emboss
+     *                  => highlight
+     *                  => edegdetect
+     *                  for bubbles.bubbles1,cloud effect opacity is required
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageEffects( $params ){
+     */
+    public function ImageEffects($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array($params)){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);			
+            if ($params['effect'] === 'gray') {
+                imagefilter($image, IMG_FILTER_GRAYSCALE);
+            }
 
-			if( $ext === 'png' ){
+            if ($params['effect'] === 'sepia') {
+                imagefilter($image, IMG_FILTER_GRAYSCALE);
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 10);
 
-			}elseif( $ext === 'jpeg' ){
+                imagefilter($image, IMG_FILTER_COLORIZE, 100, 50, 0);
+            }
 
-				$image = imagecreatefromjpeg($filename);
+            if ($params['effect'] === 'sepia1') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 90, 90, 0);
+            }
 
-			}elseif( $ext === 'gif' ){
+            if ($params['effect'] === 'amazing') {
+                imagefilter($image, IMG_FILTER_CONTRAST, -20);
+            }
 
-				$image = imagecreatefromgif($filename);
+            if ($params['effect'] === 'amazing1') {
+                imagefilter($image, IMG_FILTER_CONTRAST, -100);
+            }
 
-			}else{
-				return false;
-			}			
+            if ($params['effect'] === 'amazing2') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 100, 0, 0);
+            }
 
-			if($params['effect'] === 'gray'){
+            if ($params['effect'] === 'aqua') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 70, 0, 30);
+            }
 
-				imagefilter($image, IMG_FILTER_GRAYSCALE);
+            if ($params['effect'] === 'gama') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 0, 255, 0);
+            }
 
-			}
+            if ($params['effect'] === 'gama2') {
+                imagefilter($image, IMG_FILTER_COLORIZE, -150, -252, 10);
 
-			if($params['effect'] === 'sepia'){
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 10);
+            }
 
-						imagefilter($image, IMG_FILTER_GRAYSCALE);
+            if ($params['effect'] === 'ybulb') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 10, 10, -50);
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,10);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -200);
+            }
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 100, 50, 0);
+            if ($params['effect'] === 'moon') {
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -200);
+            }
 
-			}
+            if ($params['effect'] === 'fire') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 100, 10, -240);
 
-			if($params['effect'] === 'sepia1'){
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -160);
+            }
 
-					imagefilter($image, IMG_FILTER_COLORIZE, 90, 90, 0);
-						
-			}
+            if ($params['effect'] === 'flesh') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 90, 90, 90);
 
-			if($params['effect'] === 'amazing'){
-					
-						imagefilter($image, IMG_FILTER_CONTRAST, -20);;
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -160);
+            }
 
-			}	
+            if ($params['effect'] === 'green_day') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 90, 90, 90);
 
-			if($params['effect'] === 'amazing1'){
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -160);
 
-						imagefilter($image, IMG_FILTER_CONTRAST, -100);;
+                imagefilter($image, IMG_FILTER_COLORIZE, -111, -12, -45);
 
-			}		
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 45);
+            }
 
-			if($params['effect'] === 'amazing2'){
+            if ($params['effect'] === 'green_night') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 90, 90, 90);
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 100, 0, 0);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -160);
 
-			}
+                imagefilter($image, IMG_FILTER_COLORIZE, -111, -12, -45);
 
-			if($params['effect'] === 'aqua'){
-						
-						imagefilter($image, IMG_FILTER_COLORIZE, 0, 70, 0, 30);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -30);
+            }
 
-			}		
+            if ($params['effect'] === 'frozen') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 255, 113, 5);
+            }
 
-			if($params['effect'] === 'gama'){
-						
-						imagefilter($image, IMG_FILTER_COLORIZE, 0, 0, 255, 0);
+            if ($params['effect'] === 'green') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 255, 12, 12);
+            }
 
-			}	
+            if ($params['effect'] === 'froz') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 54, 100, 64);
+            }
 
-			if($params['effect'] === 'gama2'){
+            if ($params['effect'] === 'negative') {
+                imagefilter($image, IMG_FILTER_NEGATE);
+            }
 
-						imagefilter($image, IMG_FILTER_COLORIZE, -150, -252, 10);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,10);
+            if ($params['effect'] === 'emboss') {
+                imagefilter($image, IMG_FILTER_EMBOSS);
+            }
 
-			}
+            if ($params['effect'] === 'highlight') {
+                imagefilter($image, IMG_FILTER_MEAN_REMOVAL);
+            }
+            if ($params['effect'] === 'edegdetect') {
+                imagefilter($image, IMG_FILTER_EDGEDETECT);
+            }
 
-			if($params['effect'] === 'ybulb'){
+            if ($params['effect'] === 'pixel') {
+                imagefilter($image, IMG_FILTER_PIXELATE, 10, 0);
+            }
+            if ($params['effect'] === 'pixel1') {
+                imagefilter($image, IMG_FILTER_PIXELATE, 50, 0);
+            }
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 10, 10, -50);
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-200);
+            if ($params['effect'] === 'pixel2') {
+                imagefilter($image, IMG_FILTER_PIXELATE, 10, 0);
 
-			}			
+                imagefilter($image, IMG_FILTER_COLORIZE, 0, 140, 255, 140);
+            }
 
-			if($params['effect'] === 'moon'){
+            if ($params['effect'] === 'hot') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 10, 100, -255);
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-200);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 40);
+            }
 
-			}	
+            if ($params['effect'] === 'gold') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 215, 215, 10);
 
-			if($params['effect'] === 'fire'){
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -20);
+            }
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 100, 10, -240);
+            if ($params['effect'] === 'tpink') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 10, -50, -12);
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-160);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -20);
+            }
+            if ($params['effect'] === 'blood') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 30, -255, -255);
 
-			}
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 20);
+            }
 
-			if($params['effect'] === 'flesh'){
+            if ($params['effect'] === 'cold') {
+                imagefilter($image, IMG_FILTER_COLORIZE, -255, -100, 10);
 
-						imagefilter($image, IMG_FILTER_COLORIZE , 90, 90, 90);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 20);
+            }
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-160);
+            if ($params['effect'] === 'cloudy') {
+                imagefilter($image, IMG_FILTER_COLORIZE, -70, -50, 30);
 
-			}
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 40);
+            }
 
-			if($params['effect'] === 'green_day'){
+            if ($params['effect'] === 'sunshine') {
+                imagefilter($image, IMG_FILTER_COLORIZE, 10, 10, -50);
 
-						imagefilter($image, IMG_FILTER_COLORIZE , 90, 90, 90);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, 40);
+            }
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-160);
+            if ($params['effect'] === 'light') {
+                $matrix = [
+                            [
+                                2, 0, 1,
+                            ],
 
-						imagefilter($image, IMG_FILTER_COLORIZE , -111, -12, -45);
+                            [
+                                0, -1, 0,
+                            ],
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS, 45);
+                            [
+                                0, 0, -1,
+                            ],
 
-			}
+                        ];
+                imageconvolution($image, $matrix, 1, 127);
+            }
 
-			if($params['effect'] === 'green_night'){
+            if ($params['effect'] === 'bubbles') {
+                $pattern = imagecreatefromstring(file_get_contents('patterns/bubbles.png'));
 
-						imagefilter($image, IMG_FILTER_COLORIZE , 90, 90, 90);
+                $x = imagesx($image);
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-160);
+                $y = imagesy($image);
 
-						imagefilter($image, IMG_FILTER_COLORIZE , -111, -12, -45);
+                $x2 = imagesx($pattern);
 
-						imagefilter($image, IMG_FILTER_BRIGHTNESS, -30);
+                $y2 = imagesy($pattern);
 
-			}
+                $th = imagecreatetruecolor($x, $y);
 
-			if($params['effect'] === 'frozen'){
+                imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
 
-						imagefilter($image,IMG_FILTER_COLORIZE,0, 255, 113, 5);
+                imagecopymerge($image, $th, 0, 0, 0, 0, $x, $y, $params['opacity']);
 
-			}
+                imagefilter($image, IMG_FILTER_CONTRAST, -10);
 
-			if($params['effect'] === 'green'){
-						
-						imagefilter($image, IMG_FILTER_COLORIZE, 0, 255, 12, 12);
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -30);
+            }
 
-			}
+            if ($params['effect'] === 'bubbles1') {
+                $pattern = imagecreatefromstring(file_get_contents('patterns/bubbles1.png'));
 
-			if($params['effect'] === 'froz'){
+                $x = imagesx($image);
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 0, 54, 100, 64);
+                $y = imagesy($image);
 
-			}			
+                $x2 = imagesx($pattern);
 
-			if($params['effect'] === 'negative'){
+                $y2 = imagesy($pattern);
 
-						imagefilter($image, IMG_FILTER_NEGATE);
+                $th = imagecreatetruecolor($x, $y);
 
-			}			
+                imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
 
-			if($params['effect'] === 'emboss'){
+                imagecopymerge($image, $th, 0, 0, 0, 0, $x2, $y, $params['opacity']);
 
-						imagefilter($image, IMG_FILTER_EMBOSS);
+                imagefilter($image, IMG_FILTER_CONTRAST, -10);
 
-			}
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -30);
+            }
 
-			if($params['effect'] === 'highlight'){
+            if ($params['effect'] === 'cloud') {
+                $pattern = imagecreatefromstring(file_get_contents('patterns/cloud.png'));
 
-						imagefilter($image, IMG_FILTER_MEAN_REMOVAL);
+                $x = imagesx($image);
 
-			}	
-			if($params['effect'] === 'edegdetect'){
+                $y = imagesy($image);
 
-						imagefilter($image, IMG_FILTER_EDGEDETECT);
+                $x2 = imagesx($pattern);
 
-			}
+                $y2 = imagesy($pattern);
 
-			if($params['effect'] === 'pixel'){
+                $th = imagecreatetruecolor($x, $y);
 
-						imagefilter($image, IMG_FILTER_PIXELATE,10,0);
+                imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
 
-			}
-			if($params['effect'] === 'pixel1'){
+                imagecopymerge($image, $th, 0, 0, 0, 0, $x2, $y, $params['opacity']);
 
-						imagefilter($image, IMG_FILTER_PIXELATE,50,0);
+                imagefilter($image, IMG_FILTER_CONTRAST, -10);
 
-			}			
+                imagefilter($image, IMG_FILTER_BRIGHTNESS, -30);
+            }
 
-			if($params['effect'] === 'pixel2'){
+            $img = imagejpeg($image);
 
-						imagefilter($image, IMG_FILTER_PIXELATE,10,0);
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 0, 140, 255, 140);
+                [
+                    'image'  => $image,
+                    'target' => $params['target'],
+                ]
 
-			}	
+            );
+            }
 
-			if($params['effect'] === 'hot'){
+            imagedestroy($image);
 
-						imagefilter($image, IMG_FILTER_COLORIZE, 10, 100, -255);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,40);	
+            return $img;
+        } else {
+            return false;
+        }
+    }
 
-			}	
-
-			if($params['effect'] === 'gold'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, 215,215,10);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-20);	
-
-			}
-
-			if($params['effect'] === 'tpink'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, 10,-50,-12);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,-20);	
-
-			}	
-			if($params['effect'] === 'blood'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, 30, -255, -255);	
-
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,20);
-
-			}		
-
-			if($params['effect'] === 'cold'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, -255, -100, 10);	
-
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,20);
-
-			}		
-
-			if($params['effect'] === 'cloudy'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, -70, -50, 30);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,40);
-
-			}						
-
-			if($params['effect'] === 'sunshine'){
-
-						imagefilter($image, IMG_FILTER_COLORIZE, 10, 10, -50);	
-						
-						imagefilter($image, IMG_FILTER_BRIGHTNESS,40);
-
-			}
-
-			if($params['effect'] === 'light'){
-
-						$matrix = [
-							[
-								2 , 0 ,1
-							],
-
-							[
-								0, -1, 0
-							],
-
-							[
-								0, 0, -1
-							],
-							
-						];
-						imageconvolution($image, $matrix, 1, 127);
-
-			}
-
-			if($params['effect'] === 'bubbles'){
-				
-				$pattern = imagecreatefromstring(file_get_contents("patterns/bubbles.png"));
-
-				$x = imagesx($image);
-
-				$y = imagesy($image);
-
-				$x2 = imagesx($pattern);
-
-				$y2 = imagesy($pattern);
-
-				$th = imagecreatetruecolor($x, $y);
-
-				imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
-
-				imagecopymerge($image, $th, 0, 0, 0, 0, $x, $y, $params['opacity']);
-
-				imagefilter($image, IMG_FILTER_CONTRAST,-10);
-
-				imagefilter($image, IMG_FILTER_BRIGHTNESS, -30 );				
-
-			}
-
-			if($params['effect'] === 'bubbles1'){
-
-				$pattern = imagecreatefromstring(file_get_contents("patterns/bubbles1.png"));
-
-				$x = imagesx($image);
-
-				$y = imagesy($image);
-
-				$x2 = imagesx($pattern);
-
-				$y2 = imagesy($pattern);
-
-				$th = imagecreatetruecolor($x, $y);
-
-				imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
-
-
-				imagecopymerge($image, $th, 0, 0, 0, 0, $x2, $y, $params['opacity']);
-
-				imagefilter($image, IMG_FILTER_CONTRAST,-10);
-
-				imagefilter($image, IMG_FILTER_BRIGHTNESS, -30 );
-
-			}
-
-			if($params['effect'] === 'cloud'){
-
-				$pattern = imagecreatefromstring(file_get_contents("patterns/cloud.png"));
-
-				$x = imagesx($image);
-
-				$y = imagesy($image);
-
-				$x2 = imagesx($pattern);
-
-				$y2 = imagesy($pattern);
-
-				$th = imagecreatetruecolor($x, $y);
-
-				imagecopyresized($th, $pattern, 0, 0, 0, 0, $x, $y, $x2, $y2);
-
-				imagecopymerge($image, $th, 0, 0, 0, 0, $x2, $y, $params['opacity']);
-
-				imagefilter($image, IMG_FILTER_CONTRAST,-10);
-
-				imagefilter($image, IMG_FILTER_BRIGHTNESS, -30 );					
-
-			}
-
-
-			$img = imagejpeg($image);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-		
-			imagedestroy($image);	
-
-			return $img;
-		}else{
-
-			return false;
-
-		}
-
-	}
-
-	 /**
-     * Crop the image
+    /**
+     * Crop the image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'x' => x coordinate of image e.g 45
-	 * 'y' => y coordinate of image e.g 11
-		 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'x' => x coordinate of image e.g 45
+     *                  'y' => y coordinate of image e.g 11
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageCrop( $params ){
+     */
+    public function ImageCrop($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array( $params )){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            $img_size = getimagesize($params['source']);
 
-			$ext = $this->ImageExtension($filename);
+            $width = $img_size[0];
 
-			$img_size = getimagesize($params['source']);
+            $height = $img_size[1];
 
-			$width = $img_size[0];
+            $image_c = imagecreatetruecolor($width, $height);
 
-			$height = $img_size[1];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$image_c = imagecreatetruecolor($width, $height);			
+            $size = min(imagesx($image), imagesy($image));
 
-			if( $ext === 'png' ){
+            $image2 = imagecrop($image, ['x' => $params['x'], 'y' => $params['y'], 'width' => $size, 'height' => $size]);
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            $img = imagejpeg($image2);
 
-			}elseif( $ext === 'jpeg' ){
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-				$image = imagecreatefromjpeg($filename);
+                [
+                    'image'  => $image2,
+                    'target' => $params['target'],
+                ]
 
-			}elseif( $ext === 'gif' ){
+            );
+            }
+            imagedestroy($image2);
 
-				$image = imagecreatefromgif($filename);
+            return $img;
+        }
+    }
 
-			}else{
-				return false;
-			}			
-
-			$size = min(imagesx($image), imagesy($image));
-
-			$image2 = imagecrop($image, ['x' => $params['x'], 'y' => $params['y'], 'width' => $size, 'height' => $size]);
-
-			
-			$img = imagejpeg($image2);
-				
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image2,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}	
-			imagedestroy($image2);	
-
-			return $img;
-		}
-
-	}	
-
-	 /**
-     * Flip the image
+    /**
+     * Flip the image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'flip' => support two different value
-	 * 'horizontal' => flip image horizontally
-	 * 'vertical' => flip image vertically
-		 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'flip' => support two different value
+     *                  'horizontal' => flip image horizontally
+     *                  'vertical' => flip image vertically
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */
-	public function ImageFlip( $params ){
+     */
+    public function ImageFlip($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array( $params )){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);
+            if ($params['flip'] === 'horizontal') {
+                imageflip($image, IMG_FLIP_HORIZONTAL);
+            } elseif ($params['flip'] === 'vertical') {
+                imageflip($image, IMG_FLIP_VERTICAL);
+            } else {
+                imageflip($image, IMG_FLIP_BOTH);
+            }
+            imagejpeg($image);
 
-			if( $ext === 'png' ){
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+                [
+                    'image'  => $image,
+                    'target' => $params['target'],
+                ]
 
-			}elseif( $ext === 'jpeg' ){
+            );
+            }
+        } else {
+            return false;
+        }
+    }
 
-				$image = imagecreatefromjpeg($filename);
-
-			}elseif( $ext === 'gif' ){
-
-				$image = imagecreatefromgif($filename);
-
-			}else{
-
-				return false;
-
-			}	
-
-			if( $params['flip'] === 'horizontal' ){
-
-			imageflip($image,IMG_FLIP_HORIZONTAL);
-
-			}elseif( $params['flip'] === 'vertical' ){
-
-				imageflip($image, IMG_FLIP_VERTICAL);
-
-			}else{
-
-				imageflip($image, IMG_FLIP_BOTH);
-
-			}
-			imagejpeg($image);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-
-		}else{
-
-			return false;
-
-		}
-	}
-
-	 /**
-     * Rotate the image
+    /**
+     * Rotate the image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'rotate' => Rotate in degree e.g 90,150 etc...
-	 * 'bg_color' => (optional) if you want provide color of the uncovered zone after the rotation support three argument valid value for rgb
-	 * 'red' => red color
-	 * 'green' => green color
-	 * 'blue' => blue color
-	 * Learn more about rgb https://en.wikipedia.org/wiki/RGB_color_model
-		 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'rotate' => Rotate in degree e.g 90,150 etc...
+     *                  'bg_color' => (optional) if you want provide color of the uncovered zone after the rotation support three argument valid value for rgb
+     *                  'red' => red color
+     *                  'green' => green color
+     *                  'blue' => blue color
+     *                  Learn more about rgb https://en.wikipedia.org/wiki/RGB_color_model
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */ 
-	public function ImageRotate( $params ){
+     */
+    public function ImageRotate($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array( $params )){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);
+            if (isset($params['bg_color'])) {
+                $bg_color = imagecolorallocate($image, $params['bg_color']['red'], $params['bg_color']['green'], $params['bg_color']['blue']);
 
-			if( $ext === 'png' ){
+                $rotate = imagerotate($image, $params['rotate'], $bg_color, 0);
+            } else {
+                $rotate = imagerotate($image, $params['rotate'], 0);
+            }
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            imagejpeg($rotate);
 
-			}elseif( $ext === 'jpeg' ){
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-				$image = imagecreatefromjpeg($filename);
+                [
+                    'image'  => $rotate,
+                    'target' => $params['target'],
+                ]
 
-			}elseif( $ext === 'gif' ){
+            );
+            }
 
-				$image = imagecreatefromgif($filename);
+            imagedestroy($image);
+            imagedestroy($rotate);
+        } else {
+            return false;
+        }
+    }
 
-			}else{
-
-				return false;
-
-			}	
-
-			if(isset($params['bg_color'])){
-
-			 	 $bg_color = imagecolorallocate($image, $params['bg_color']['red'], $params['bg_color']['green'], $params['bg_color']['blue']);
-
-			 	 $rotate = imagerotate($image, $params['rotate'],$bg_color,0);
-
-			}else{
-
-				$rotate = imagerotate($image, $params['rotate'],0);
-
-			}
-
-			imagejpeg($rotate);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $rotate,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-
-		imagedestroy($image);
-		imagedestroy($rotate);
-
-		}else{
-
-			return false;
-
-		}
-	}
-
-
-	 /**
-     * Add Border to the image
+    /**
+     * Add Border to the image.
+     *
      * @param   $params (array)
-     * 'source' => Source valid image file
-     * 'thickness' => thickness of border
-	 * 'bg_color' =>  three argument valid value for rgb
-	 * 'red' => red color
-	 * 'green' => green color
-	 * 'blue' => blue color
-	 * Learn more about rgb https://en.wikipedia.org/wiki/RGB_color_model
-		 * if you do not want save image these parameter are optional if you want save image
-	 * 'save' => true
-	 * 'target' => target + new name of file
+     *                  'source' => Source valid image file
+     *                  'thickness' => thickness of border
+     *                  'bg_color' =>  three argument valid value for rgb
+     *                  'red' => red color
+     *                  'green' => green color
+     *                  'blue' => blue color
+     *                  Learn more about rgb https://en.wikipedia.org/wiki/RGB_color_model
+     *                  if you do not want save image these parameter are optional if you want save image
+     *                  'save' => true
+     *                  'target' => target + new name of file
+     *
      * @return image
-    */ 
-	public function ImageBorder( $params ){
+     */
+    public function ImageBorder($params)
+    {
+        if (is_array($params)) {
+            $filename = $params['source'];
 
-		if(is_array( $params )){
+            $ext = $this->ImageExtension($filename);
 
-			$filename = $params['source'];
+            if ($ext === 'png') {
+                $image = imagecreatefromstring(file_get_contents($filename));
+            } elseif ($ext === 'jpeg') {
+                $image = imagecreatefromjpeg($filename);
+            } elseif ($ext === 'gif') {
+                $image = imagecreatefromgif($filename);
+            } else {
+                return false;
+            }
 
-			$ext = $this->ImageExtension($filename);
+            $border_colors = imagecolorallocate($image, $params['bg_color']['red'], $params['bg_color']['green'], $params['bg_color']['blue']);
 
-			if( $ext === 'png' ){
+            $x = 0;
 
-				$image = imagecreatefromstring(file_get_contents($filename));
+            $y = 0;
 
-			}elseif( $ext === 'jpeg' ){
+            $w = imagesx($image) - 1;
 
-				$image = imagecreatefromjpeg($filename);
+            $h = imagesy($image) - 1;
 
-			}elseif( $ext === 'gif' ){
+            imagesetthickness($image, $params['thickness']);
 
-				$image = imagecreatefromgif($filename);
+            //left
+            imageline($image, $x, $y, $x, $y + $h, $border_colors);
 
-			}else{
+            //top
+            imageline($image, $x, $y, $x + $w, $y, $border_colors);
 
-				return false;
+            //right
+            imageline($image, $x + $w, $y, $x + $w, $y + $h, $border_colors);
 
-			}	
+            //bottom
+            imageline($image, $x, $y + $h, $x + $w, $y + $h, $border_colors);
 
-			$border_colors = imagecolorallocate($image, $params['bg_color']['red'], $params['bg_color']['green'], $params['bg_color']['blue']);
+            imagejpeg($image);
 
-			$x = 0;
+            if (isset($params['save']) and $params['save'] === true) {
+                $this->ImageSave(
 
-			$y = 0;
+                [
+                    'image'  => $image,
+                    'target' => $params['target'],
+                ]
 
-			$w = imagesx($image) - 1;
+            );
+            }
 
-			$h = imagesy($image) - 1;
-
-			imagesetthickness($image, $params['thickness']);
-		
-			//left
-			imageline($image, $x, $y, $x, $y+$h, $border_colors);
-
-			//top
-			imageline($image, $x, $y, $x+$w, $y, $border_colors);
-
-			//right
-			imageline($image, $x+$w,$y,$x+$w,$y+$h, $border_colors);
-
-			//bottom
-			imageline($image, $x,$y+$h,$x+$w,$y+$h, $border_colors);
-		
-			imagejpeg($image);
-
-			if( isset($params['save']) and $params['save'] === true ){
-
-			$this->ImageSave(
-
-				[
-					'image' => $image,
-					'target' => $params['target'],
-				]
-
-			);
-
-		}
-
-		imagedestroy($image);
-		
-		}else{
-
-			return false;
-
-		}
-	}
+            imagedestroy($image);
+        } else {
+            return false;
+        }
+    }
 }
