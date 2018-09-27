@@ -118,4 +118,3 @@ $size =  $img->ImageBorder(
         'target' => 'img/border.png'
 ]);
 */
-echo $img->ImageDate('img/umer.png');
